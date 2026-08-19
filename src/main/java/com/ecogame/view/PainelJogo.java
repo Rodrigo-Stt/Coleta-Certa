@@ -15,10 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Painel principal onde o jogo acontece: gera os itens de lixo,
- * atualiza suas posições e verifica colisões com as lixeiras.
- */
+
 public class PainelJogo extends JPanel {
 
     private static final int LARGURA = 700;
@@ -42,8 +39,7 @@ public class PainelJogo extends JPanel {
         configurarTeclado();
         iniciarLoops();
 
-        // Garante que um clique no painel devolva o foco do teclado,
-        // caso ele tenha se perdido por algum motivo.
+
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -80,33 +76,26 @@ public class PainelJogo extends JPanel {
             default -> null;
         };
     }
-
-    /**
-     * Captura o item mais próximo da faixa das lixeiras que combine
-     * com o tipo escolhido pelo jogador.
-     */
+    
+   
     private void capturarItem(TipoLixo tipoEscolhido) {
-        ItemLixo alvo = null;
-        for (ItemLixo item : itens) {
-            if (item.getTipo() == tipoEscolhido && item.getY() > Y_LIXEIRAS - 120) {
-                alvo = item;
-                break;
-            }
-        }
-        if (alvo != null) {
-            itens.remove(alvo);
-            pontuacao.registrarAcerto();
-        } else {
-            pontuacao.registrarErro();
-        }
+    if (itens.isEmpty()) {
+        return;
     }
+    ItemLixo primeiro = itens.remove(0);
+    if (primeiro.getTipo() == tipoEscolhido) {
+        pontuacao.registrarAcerto();
+    } else {
+        pontuacao.registrarErro();
+    }
+    }
+        
+
 
     private void iniciarLoops() {
-        // Atualiza a posição dos itens ~60 vezes por segundo
         timerJogo = new Timer(16, e -> atualizarJogo());
         timerJogo.start();
 
-        // Gera um novo item a cada 1.2 segundos
         timerGeracao = new Timer(1200, e -> gerarItem());
         timerGeracao.start();
     }
@@ -123,7 +112,6 @@ public class PainelJogo extends JPanel {
             item.cair();
         }
 
-        // Remove itens que passaram da linha das lixeiras sem ser capturados
         itens.removeIf(item -> {
             if (item.getY() > Y_LIXEIRAS) {
                 pontuacao.registrarErro();
@@ -162,11 +150,97 @@ public class PainelJogo extends JPanel {
     }
 
     private void desenharItens(Graphics2D g2) {
-        for (ItemLixo item : itens) {
-            g2.setColor(corParaTipo(item.getTipo()));
-            g2.fillOval((int) item.getX(), (int) item.getY(), item.getTamanho(), item.getTamanho());
+    for (ItemLixo item : itens) {
+        desenharIconeItem(g2, item);
+    }
+    }
+
+    /*/* */
+
+    private void desenharIconeItem(Graphics2D g2, ItemLixo item) {
+        int x = (int) item.getX();
+        int y = (int) item.getY();
+        int tam = item.getTamanho();
+
+        switch (item.getTipo()) {
+            case PAPEL -> desenharPapel(g2, x, y, tam);
+            case VIDRO -> desenharVidro(g2, x, y, tam);
+            case PLASTICO -> desenharPlastico(g2, x, y, tam);
+            case ORGANICO -> desenharOrganico(g2, x, y, tam);
         }
     }
+
+    private void desenharPapel(Graphics2D g2, int x, int y, int tam) {
+        int dobra = 10;
+        Polygon folha = new Polygon();
+        folha.addPoint(x, y);
+        folha.addPoint(x + tam - dobra, y);
+        folha.addPoint(x + tam, y + dobra);
+        folha.addPoint(x + tam, y + tam);
+        folha.addPoint(x, y + tam);
+
+        g2.setColor(new Color(250, 244, 224));
+        g2.fillPolygon(folha);
+        g2.setColor(new Color(230, 168, 55));
+        g2.setStroke(new BasicStroke(2));
+        g2.drawPolygon(folha);
+        g2.drawLine(x + tam - dobra, y, x + tam - dobra, y + dobra);
+        g2.drawLine(x + tam - dobra, y + dobra, x + tam, y + dobra);
+
+        g2.setStroke(new BasicStroke(1.5f));
+        for (int i = 1; i <= 3; i++) {
+            int ly = y + dobra + i * 6;
+            g2.drawLine(x + 5, ly, x + tam - 6, ly);
+        }
+    }
+
+    private void desenharVidro(Graphics2D g2, int x, int y, int tam) {
+        int corpoX = x + tam / 4;
+        int corpoLargura = tam / 2 + 2;
+        int corpoY = y + tam / 3;
+        int corpoAltura = tam - tam / 3;
+
+        g2.setColor(new Color(70, 130, 200, 220));
+        g2.fillRoundRect(corpoX, corpoY, corpoLargura, corpoAltura, 8, 8);
+        g2.fillRect(x + tam / 2 - 4, y, 8, tam / 3 + 2);
+
+        g2.setColor(new Color(35, 85, 145));
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRoundRect(corpoX, corpoY, corpoLargura, corpoAltura, 8, 8);
+        g2.drawRect(x + tam / 2 - 4, y, 8, tam / 3 + 2);
+    }
+
+    private void desenharPlastico(Graphics2D g2, int x, int y, int tam) {
+        int corpoX = x + tam / 5;
+        int corpoLargura = (int) (tam * 0.6);
+        int corpoY = y + tam / 4;
+        int corpoAltura = tam - tam / 4;
+
+        g2.setColor(new Color(60, 170, 110, 220));
+        g2.fillRoundRect(corpoX, corpoY, corpoLargura, corpoAltura, 12, 12);
+
+        g2.setColor(new Color(230, 168, 55));
+        g2.fillRect(x + tam / 2 - 5, y, 10, tam / 4 + 2);
+
+        g2.setColor(new Color(25, 115, 75));
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRoundRect(corpoX, corpoY, corpoLargura, corpoAltura, 12, 12);
+    }
+
+    private void desenharOrganico(Graphics2D g2, int x, int y, int tam) {
+        g2.setColor(new Color(150, 90, 180));
+        g2.fillOval(x, y + 6, tam, tam - 6);
+        g2.setColor(new Color(95, 55, 120));
+        g2.setStroke(new BasicStroke(2));
+        g2.drawOval(x, y + 6, tam, tam - 6);
+
+        g2.setColor(new Color(110, 75, 40));
+        g2.drawLine(x + tam / 2, y + 6, x + tam / 2, y);
+
+        g2.setColor(new Color(90, 150, 70));
+        g2.fillOval(x + tam / 2, y - 2, 10, 6);
+    }
+
 
     private void desenharLixeiras(Graphics2D g2) {
         g2.setFont(new Font("SansSerif", Font.BOLD, 13));
