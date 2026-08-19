@@ -30,6 +30,8 @@ public class PainelJogo extends JPanel {
     private Timer timerJogo;
     private Timer timerGeracao;
 
+    private final JButton botaoReiniciar = new JButton("Reiniciar");
+
     public PainelJogo() {
         setPreferredSize(new Dimension(LARGURA, ALTURA));
         setBackground(new Color(235, 245, 235));
@@ -98,8 +100,15 @@ public class PainelJogo extends JPanel {
 
         timerGeracao = new Timer(1200, e -> gerarItem());
         timerGeracao.start();
+
+        setLayout(null);
+        botaoReiniciar.setBounds(LARGURA / 2 - 60, ALTURA / 2 + 20, 120, 36);
+        botaoReiniciar.setVisible(false);
+        botaoReiniciar.addActionListener(e -> reiniciarJogo());
+        add(botaoReiniciar);
     }
 
+    
     private void gerarItem() {
         TipoLixo[] tipos = TipoLixo.values();
         TipoLixo tipoSorteado = tipos[random.nextInt(tipos.length)];
@@ -123,8 +132,22 @@ public class PainelJogo extends JPanel {
         if (pontuacao.jogoAcabou()) {
             timerJogo.stop();
             timerGeracao.stop();
+            botaoReiniciar.setVisible(true);
         }
 
+        repaint();
+        
+    }
+
+    private void reiniciarJogo() {
+        itens.clear();
+        pontuacao.reiniciar();
+        botaoReiniciar.setVisible(false);
+
+        timerJogo.start();
+        timerGeracao.start();
+
+        requestFocusInWindow();
         repaint();
     }
 

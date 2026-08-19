@@ -1,8 +1,5 @@
 package com.ecogame.controller;
 
-/**
- * Controla a pontuação e as vidas do jogador ao longo da partida.
- */
 public class Pontuacao {
 
     private int pontos = 0;
@@ -12,6 +9,11 @@ public class Pontuacao {
 
     public void registrarAcerto() {
         pontos += PONTOS_POR_ACERTO;
+    }
+
+    public void reiniciar() {
+        pontos = 0;
+        vidas = 3;
     }
 
     public void registrarErro() {
